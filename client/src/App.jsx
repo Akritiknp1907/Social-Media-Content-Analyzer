@@ -20,7 +20,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const filePreviewUrl = useRef(null);
 
-  // Handles file selection and validation
+  
   const handleFileChange = (e) => {
     const f = e.target.files[0];
     if (!f) return;
@@ -40,7 +40,7 @@ function App() {
     }
   };
 
-  // Handles form submit and file upload
+  
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -144,10 +144,10 @@ function App() {
         <div className="hero-section">
           <h2 className="hero-title">Your Personal Content Assistant</h2>
           <p className="hero-subtitle">
-            Upload a pdf, document, or image — I’ll help you read it, simplify it, and give you quick insights you can actually use.
+            Upload a pdf or image — I’ll help you read it, simplify it, and give you quick insights you can actually use.
           </p>
         </div>
-        {/* File upload and preview */}
+        
         <div className="upload-card">
           <FileUpload
             file={file}
@@ -195,7 +195,7 @@ function App() {
             </button>
           </div>
         </div>
-        {/* Loading spinner */}
+       
         {loading && <LoadingSpinner />}
         {/* Error message */}
         <ErrorMessage error={error} />
