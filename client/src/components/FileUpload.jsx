@@ -23,7 +23,7 @@ const FileUpload = ({ file, onFileChange, onSubmit, dragActive, handleDragOver, 
       onChange={onFileChange}
       className="file-input-hidden"
     />
-    <button type="submit" className="upload-btn" disabled={loading}>{loading ? 'Uploading...' : 'Upload'}</button>
+    <button type="submit" className="upload-btn" disabled={loading}>Upload</button>
     {file && (
       <div className="file-preview-card">
         <div className="file-info">
