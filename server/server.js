@@ -23,14 +23,14 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 app.use(cors({
   origin: [
-    "http://localhost:5173", // dev frontend
-    "https://social-media-content-analyzer.vercel.app" // vercel deployed frontend
+    "http://localhost:5173", // local dev
+    "https://social-media-content-analyzer.vercel.app", 
+    "https://social-media-content-analyzer-sage.vercel.app" 
   ],
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST"],    
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
-
 
 const upload = multer({
   storage: multer.memoryStorage(),
