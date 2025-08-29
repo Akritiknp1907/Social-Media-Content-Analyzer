@@ -24,8 +24,9 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173", // local dev
-    "https://social-media-content-analyzer.vercel.app", 
-    "https://social-media-content-analyzer-sage.vercel.app" 
+    // "https://social-media-content-analyzer.vercel.app", 
+    // "https://social-media-content-analyzer-sage.vercel.app" 
+    "https://social-media-content-analyzer-8xo5.onrender.com"
   ],
   methods: ["GET", "POST"],    
   allowedHeaders: ["Content-Type", "Authorization"]
