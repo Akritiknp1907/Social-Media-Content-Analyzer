@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Shows a loading spinner and message
+
 const LoadingSpinner = () => (
   <div className="loading-card">
     <div className="loading-spinner"></div>
