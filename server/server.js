@@ -1,13 +1,13 @@
 /**
  * @api 
- * @desc Upload and analyze a PDF/JPG/PNG file. Returns extracted text, metrics, and AI summaries.
- * @param {file} file - PDF, JPG, or PNG file (multipart/form-data)
+ * @desc 
+ * @param {file} file
  * @returns {Object} 
 
 /**
  * @api GET /health
  * @desc 
- * @returns {Object} { ok: true }
+ * @returns {Object} 
  */
 require("dotenv").config();
 const express = require("express");
@@ -21,7 +21,14 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173", // dev frontend
+    "https://social-media-content-analyzer.vercel.app" // vercel deployed frontend
+  ],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
 
@@ -138,5 +145,8 @@ app.post("/api/analyze", upload.single("file"), async (req, res) => {
 });
 
 
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
