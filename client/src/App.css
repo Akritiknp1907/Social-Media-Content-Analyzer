@@ -150,6 +150,7 @@ body {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-light);
   padding: 1rem 0;
+  width:100%;
 }
 
 .header-content {
@@ -240,7 +241,12 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.upload-card { display: center; }
+.history-card{
+  width:100%;
+}
+
+.upload-card { display: center; 
+width:100%}
 .result-card { border-radius: 20px; padding: 1.5rem; margin-bottom: 15px; }
 .loading-card { text-align: center; padding: 3rem; }
 
@@ -462,6 +468,7 @@ body {
   padding: 5px;
   gap: 2rem;
   margin-bottom: 2rem;
+  width:100%;
 }
 
 .card-header {

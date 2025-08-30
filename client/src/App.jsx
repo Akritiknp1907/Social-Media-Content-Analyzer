@@ -20,7 +20,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const filePreviewUrl = useRef(null);
 
-  
+
   const handleFileChange = (e) => {
     const f = e.target.files[0];
     if (!f) return;
@@ -40,16 +40,17 @@ function App() {
     }
   };
 
-  
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setResult(null);
+
 
     if (!file) {
       setError('Please select a PDF, JPG, or PNG file.');
       return;
     }
+    setError('');
+    setResult(null);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -64,7 +65,7 @@ function App() {
       setResult(data);
       setSummaryType('');
 
-      setHistory(prev => [data, ...prev]); 
+      setHistory(prev => [data, ...prev]);
     } catch (err) {
       console.error(err);
       setError(err?.response?.data?.error || 'Something went wrong');
@@ -87,7 +88,7 @@ function App() {
     e.preventDefault();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange(e.dataTransfer.files[0]);
+      handleFileChange({ target: { files: e.dataTransfer.files } });
     }
   };
 
@@ -147,28 +148,22 @@ function App() {
             Upload a pdf or image — I’ll help you read it, simplify it, and give you quick insights you can actually use.
           </p>
         </div>
-        
+
         <div className="upload-card">
           <FileUpload
             file={file}
             onFileChange={handleFileChange}
             onSubmit={onSubmit}
             dragActive={dragActive}
-            handleDragOver={e => { e.preventDefault(); setDragActive(true); }}
-            handleDragLeave={e => { e.preventDefault(); setDragActive(false); }}
-            handleDrop={e => {
-              e.preventDefault();
-              setDragActive(false);
-              if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                handleFileChange({ target: { files: e.dataTransfer.files } });
-              }
-            }}
+            handleDragOver={handleDragOver}
+            handleDragLeave={handleDragLeave}
+            handleDrop={handleDrop}
             loading={loading}
           />
           <div className="action-buttons">
             <button
               type="button"
-              disabled={loading || !file}
+              disabled={loading}
               className="main-action-btn"
               onClick={onSubmit}
             >
@@ -195,7 +190,7 @@ function App() {
             </button>
           </div>
         </div>
-       
+
         {loading && <LoadingSpinner />}
         {/* Error message */}
         <ErrorMessage error={error} />
@@ -205,38 +200,11 @@ function App() {
             result={result}
             summaryType={summaryType}
             setSummaryType={setSummaryType}
-            handleCopyText={() => {
-              if (!result?.extractedText) return;
-              navigator.clipboard.writeText(result.extractedText);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1200);
-            }}
+            handleCopyText={handleCopyText}
             copied={copied}
-            handleCopy={() => {
-              if (!result?.summaries || !summaryType) return;
-              navigator.clipboard.writeText(result.summaries[summaryType]);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1200);
-            }}
-            handleDownload={() => {
-              if (!result?.summaries || !summaryType) return;
-              const text = result.summaries[summaryType];
-              const blob = new Blob([text], { type: 'text/plain' });
-              const link = document.createElement('a');
-              link.href = URL.createObjectURL(blob);
-              link.download = `${summaryType}_summary.txt`;
-              link.click();
-            }}
-            handleShare={() => {
-              if (navigator.share && result?.summaries && summaryType) {
-                navigator.share({
-                  title: 'Social Media Content Summary',
-                  text: result.summaries[summaryType],
-                });
-              } else {
-                alert('Sharing not supported on this browser.');
-              }
-            }}
+            handleCopy={handleCopy}
+            handleDownload={handleDownload}
+            handleShare={handleShare}
           />
         )}
         {/* History */}
