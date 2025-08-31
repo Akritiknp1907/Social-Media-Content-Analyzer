@@ -17,7 +17,6 @@ const HistoryList = ({ history }) => (
             </div>
             <div className="history-details">
               <h4>{item.filename}</h4>
-              <p>{item.analysis.metrics.wordCount} words • {item.analysis.metrics.sentenceCount} sentences</p>
             </div>
           </div>
         ))}

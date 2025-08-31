@@ -3,12 +3,8 @@
  * @desc 
  * @param {file} file
  * @returns {Object} 
-
-/**
- * @api GET /health
- * @desc 
- * @returns {Object} 
  */
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -17,8 +13,7 @@ const pdfParse = require("pdf-parse");
 const Tesseract = require("tesseract.js");
 const Sentiment = require("sentiment");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-
+const emojiRegex = require("emoji-regex");
 
 const app = express();
 app.use(cors());
@@ -29,10 +24,11 @@ const upload = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
-    allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error("Only PDF/PNG/JPG allowed"));
+    allowed.includes(file.mimetype)
+      ? cb(null, true)
+      : cb(new Error("Only PDF/PNG/JPG allowed"));
   }
 });
-
 
 const sentiment = new Sentiment();
 
@@ -40,15 +36,10 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
-
-
 async function extractTextFromPdf(buffer) {
   const data = await pdfParse(buffer);
   return data.text || "";
 }
-
-
-
 
 async function extractTextFromImage(buffer) {
   const { data } = await Tesseract.recognize(buffer, "eng");
@@ -56,32 +47,77 @@ async function extractTextFromImage(buffer) {
 }
 
 
-
 function basicAnalyze(text) {
-  const words = (text.match(/\b\w+\b/g) || []);
-  const sentences = (text.split(/[.!?]+/).filter(s => s.trim().length > 0));
-  const score = sentiment.analyze(text).score;
+  const hashtagCount = (text.match(/#[\w]+/g) || []).length;
+  const mentionCount = (text.match(/@\w+/g) || []).length;
+  const linkCount = (text.match(/https?:\/\/[^\s]+/g) || []).length;
+
+  const re = emojiRegex();
+  let emojiCount = (text.match(re) || []).length;
+
+
+  const fallbackEmojiLike = (text.match(/([�□?]){2,}/g) || []).length;
+
+
+  emojiCount = emojiCount + fallbackEmojiLike;
+
+
+  const sentimentResult = sentiment.analyze(text);
 
   return {
     metrics: {
-      charCount: text.length,
-      wordCount: words.length,
-      sentenceCount: sentences.length,
-      avgWordsPerSentence: sentences.length ? Math.round(words.length / sentences.length) : words.length,
-      sentimentScore: score
+      hashtagCount,
+      emojiCount,
+      mentionCount,
+      linkCount,
+      sentimentScore: sentimentResult.score
     }
   };
 }
 
-
-async function generateSummaries(text) {
+async function generateAnalysis(text) {
   try {
     const input = text.slice(0, 2000);
 
     const [shortRes, mediumRes, longRes] = await Promise.all([
-      model.generateContent(`Summarize this text in 2–3 sentences: ${input}`),
-      model.generateContent(`Summarize this text in 5–6 sentences: ${input}`),
-      model.generateContent(`Give me a long detailed summary of this text: ${input}`)
+      model.generateContent(`You are a social media expert. Analyze the following post. 
+
+                              First, provide your analysis in about 150 words. 
+                              Then write three '-' symbols. 
+                              After that, suggest 3-5 specific improvements to increase engagement 
+                              (e.g., clarity, hashtags, call-to-action, tone, formatting, etc).
+
+                              Important:
+                              - Give improvements ONLY as a clean numbered list (1., 2., 3., etc).
+                              - Do not write any introductory text like "Here are improvements" or "Suggestions are".
+                              - Each improvement should have a short heading in bold (**...**) followed by a clear explanation.
+                              - Follow this format exactly: ${input}`),
+
+      model.generateContent(`You are a social media expert. Analyze the following post. 
+
+                              First, provide your analysis in about 250 words. 
+                              Then write three '-' symbols. 
+                              After that, suggest 5-7 specific improvements to increase engagement 
+                              (e.g., clarity, hashtags, call-to-action, tone, formatting, etc).
+
+                              Important:
+                              - Give improvements ONLY as a clean numbered list (1., 2., 3., etc).
+                              - Do not write any introductory text like "Here are improvements" or "Suggestions are".
+                              - Each improvement should have a short heading in bold (**...**) followed by a clear explanation.
+                              - Follow this format exactly: ${input}`),
+
+      model.generateContent(`You are a social media expert. Analyze the following post. 
+
+                                First, provide your analysis in about 350 words. 
+                                Then write three '-' symbols. 
+                                After that, suggest 7-9 specific improvements to increase engagement 
+                                (e.g., clarity, hashtags, call-to-action, tone, formatting, etc).
+
+                                Important:
+                                - Give improvements ONLY as a clean numbered list (1., 2., 3., etc).
+                                - Do not write any introductory text like "Here are improvements" or "Suggestions are".
+                                - Each improvement should have a short heading in bold (**...**) followed by a clear explanation.
+                                - Follow this format exactly: ${input}`)
     ]);
 
     return {
@@ -90,8 +126,8 @@ async function generateSummaries(text) {
       long: longRes.response.text()
     };
   } catch (err) {
-    console.error("Summarization error:", err);
-    return { error: "Summarization failed. This may be due to reaching the daily quota or limits of the Gemini API. The code is working, but the API may be temporarily unavailable. Please try again later or check API usage/quota." };
+    console.error("Analysis error:", err);
+    return { error: "Analysis failed. Possibly Gemini API quota issue." };
   }
 }
 
@@ -121,14 +157,14 @@ app.post("/api/analyze", upload.single("file"), async (req, res) => {
     if (!text) return res.status(422).json({ error: "No text extracted. Try clearer image or selectable PDF." });
 
     const analysis = basicAnalyze(text);
-    const summaries = await generateSummaries(text);
+    const postInsights = await generateAnalysis(text);  // ✅ renamed here
 
     res.json({
       filename: originalname,
       mimetype,
       extractedText: text,
       analysis,
-      summaries
+      postInsights   // ✅ renamed here
     });
   } catch (err) {
     console.error("Server error:", err);

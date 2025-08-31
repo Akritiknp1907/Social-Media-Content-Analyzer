@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import './App.css';
-// Import custom components
 import FileUpload from './components/FileUpload';
 import ErrorMessage from './components/ErrorMessage';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -14,12 +13,14 @@ function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
-  const [summaryType, setSummaryType] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [analysisLevel, setAnalysisLevel] = useState('medium'); // ✅ default is medium now
+
+  const [copiedContent, setCopiedContent] = useState(false);
+  const [copiedInsights, setCopiedInsights] = useState(false);
+  const [copiedSuggestions, setCopiedSuggestions] = useState(false);
+
   const [darkMode, setDarkMode] = useState(false);
   const [history, setHistory] = useState([]);
-  const filePreviewUrl = useRef(null);
-
 
   const handleFileChange = (e) => {
     const f = e.target.files[0];
@@ -28,22 +29,14 @@ function App() {
     if (!allowedTypes.includes(f.type)) {
       setError('File type not supported. Please upload PDF, JPG, or PNG.');
       setFile(null);
-      filePreviewUrl.current = null;
       return;
     }
     setError('');
     setFile(f);
-    if (f.type.startsWith('image/')) {
-      filePreviewUrl.current = URL.createObjectURL(f);
-    } else {
-      filePreviewUrl.current = null;
-    }
   };
-
 
   const onSubmit = async (e) => {
     e.preventDefault();
-
 
     if (!file) {
       setError('Please select a PDF, JPG, or PNG file.');
@@ -57,17 +50,19 @@ function App() {
 
     try {
       setLoading(true);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/analyze`,
+        `${API_URL}/api/analyze`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
-      setResult(data);
-      setSummaryType('');
 
+      console.log("✅ API Response:", data);
+      setResult(data);
+      setAnalysisLevel('medium'); // ✅ default after API response
       setHistory(prev => [data, ...prev]);
     } catch (err) {
-      console.error(err);
+      console.error("❌ API Error:", err);
       setError(err?.response?.data?.error || 'Something went wrong');
     } finally {
       setLoading(false);
@@ -78,12 +73,10 @@ function App() {
     e.preventDefault();
     setDragActive(true);
   };
-
   const handleDragLeave = (e) => {
     e.preventDefault();
     setDragActive(false);
   };
-
   const handleDrop = (e) => {
     e.preventDefault();
     setDragActive(false);
@@ -92,47 +85,49 @@ function App() {
     }
   };
 
-  const handleDownload = () => {
-    if (!result?.summaries || !summaryType) return;
-    const text = result.summaries[summaryType];
-    const blob = new Blob([text], { type: 'text/plain' });
+  const handleDownload = (textToDownload, fileName = 'insights.txt') => {
+    if (!textToDownload) return;
+    const blob = new Blob([textToDownload], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${summaryType}_summary.txt`;
+    link.download = fileName;
     link.click();
   };
 
-  const handleCopy = () => {
-    if (!result?.summaries || !summaryType) return;
-    navigator.clipboard.writeText(result.summaries[summaryType]);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+  const copyWithFeedback = (text, setFlag, ms = 1500) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setFlag(true);
+    setTimeout(() => setFlag(false), ms);
   };
 
-  const handleCopyText = () => {
-    if (!result?.extractedText) return;
-    navigator.clipboard.writeText(result.extractedText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  };
+  const handleCopyContent = () =>
+    copyWithFeedback(result?.extractedText, setCopiedContent, 1200);
 
-  const handleShare = () => {
-    if (navigator.share && result?.summaries && summaryType) {
+  const handleCopyInsights = (text) =>
+    copyWithFeedback(text, setCopiedInsights, 1500);
+
+  const handleCopySuggestions = (text) =>
+    copyWithFeedback(text, setCopiedSuggestions, 1500);
+
+  const handleShare = (textToShare) => {
+    if (navigator.share && textToShare) {
       navigator.share({
-        title: 'Social Media Content Summary',
-        text: result.summaries[summaryType],
+        title: 'Social Media Post Insights',
+        text: textToShare,
       });
     } else {
       alert('Sharing not supported on this browser.');
     }
   };
+
   return (
     <div className={`app-wrapper ${darkMode ? 'dark' : ''}`}>
       <div className="background-pattern"></div>
-      {/* Header */}
+
       <header className="app-header">
         <div className="header-content">
-          <h1 className="logo-text">TextMate</h1>
+          <h1 className="logo-text">PostMate</h1>
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="theme-toggle"
@@ -141,11 +136,12 @@ function App() {
           </button>
         </div>
       </header>
+
       <main className="main-container">
         <div className="hero-section">
-          <h2 className="hero-title">Your Personal Content Assistant</h2>
+          <h2 className="hero-title">Your Social Media Post Assistant</h2>
           <p className="hero-subtitle">
-            Upload a pdf or image — I’ll help you read it, simplify it, and give you quick insights you can actually use.
+            Upload a PDF or image of a post — I’ll extract the content, analyze it, and suggest improvements to boost engagement.
           </p>
         </div>
 
@@ -153,13 +149,13 @@ function App() {
           <FileUpload
             file={file}
             onFileChange={handleFileChange}
-            onSubmit={onSubmit}
             dragActive={dragActive}
             handleDragOver={handleDragOver}
             handleDragLeave={handleDragLeave}
             handleDrop={handleDrop}
             loading={loading}
           />
+
           <div className="action-buttons">
             <button
               type="button"
@@ -173,16 +169,20 @@ function App() {
                   Analyzing...
                 </>
               ) : (
-                <>Analyze Content</>
+                <>Analyze Post</>
               )}
             </button>
+
             <button
               type="button"
               onClick={() => {
                 setResult(null);
                 setFile(null);
-                setSummaryType('');
+                setAnalysisLevel('medium'); // ✅ reset to medium
                 setError('');
+                setCopiedContent(false);
+                setCopiedInsights(false);
+                setCopiedSuggestions(false);
               }}
               className="main-action-btn"
             >
@@ -192,21 +192,27 @@ function App() {
         </div>
 
         {loading && <LoadingSpinner />}
+
         {/* Error message */}
         <ErrorMessage error={error} />
+
         {/* Results */}
-        {result && (
+        {result?.postInsights && (
           <ResultCard
             result={result}
-            summaryType={summaryType}
-            setSummaryType={setSummaryType}
-            handleCopyText={handleCopyText}
-            copied={copied}
-            handleCopy={handleCopy}
+            analysisLevel={analysisLevel}
+            setAnalysisLevel={setAnalysisLevel}
+            onCopyContent={handleCopyContent}
+            onCopyInsights={handleCopyInsights}
+            onCopySuggestions={handleCopySuggestions}
+            copiedContent={copiedContent}
+            copiedInsights={copiedInsights}
+            copiedSuggestions={copiedSuggestions}
             handleDownload={handleDownload}
             handleShare={handleShare}
           />
         )}
+
         {/* History */}
         <HistoryList history={history} />
       </main>

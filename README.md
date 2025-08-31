@@ -1,54 +1,68 @@
-# TextMate
+PostMate – Social Media Post Analyzer
 
-A modern content assistant web app for uploading PDF, JPG, or PNG files, extracting text, analyzing metrics, and generating AI-powered summaries.
+PostMate is an AI-powered assistant that helps you analyze your social media posts before publishing.
+Just upload a PDF or Image (JPG/PNG) and let PostMate:
 
-## Features
-- Upload PDF, JPG, or PNG files
-- Extract and preview text
-- Analyze content metrics (word count, sentiment, etc.)
-- Generate short, medium, and long AI summaries
-- Copy, download, and share results
-- History of recent uploads
-- Responsive, beautiful UI with dark mode
-- Full error handling and validation
+Extract the text
+Analyze sentiment & readability
+Suggest improvements for better engagement
+Keep track of your past analyses with history
 
-## Getting Started
+📸 Demo Preview
 
-### Prerequisites
-- Node.js (v16+ recommended)
-- npm or yarn
+Features
 
-### Installation
-1. Clone the repo:
-   ```sh
-   git clone <your-repo-url>
-   cd SOCIAL MEDIA CONTENT ANALYZER
-   ```
-2. Install dependencies for both client and server:
-   ```sh
-   cd client && npm install
-   cd ../server && npm install
-   ```
+- Smart Uploads – Supports PDF, JPG, PNG with drag & drop
 
-### Running Locally
-1. Start the backend:
-   ```sh
-   cd server
-   npm start
-   ```
-2. Start the frontend:
-   ```sh
-   cd ../client
-   npm run dev
-   ```
-3. Open [http://localhost:5173](http://localhost:5173) in your browser.
+- AI-Powered Analysis – Extracts text & generates insights
 
-## Project Structure
-```
-hello/
-  client/      # React frontend
-  server/      # Node.js backend
-```
+- Multiple Levels of Analysis – Quick, Overview, Deep Dive
+
+- Suggestions Engine – Actionable improvements for better reach
+
+- Engagement Insights – Sentiment & readability metrics
+
+- Dark Mode – Clean and modern UI
+
+- History Tracking – Access past results anytime
+
+- Copy, Download & Share – Share insights directly
+
+Tech Stack
+
+Frontend: React (Vite), Axios, Custom CSS 
+Backend: Node.js + Express
+AI/Analysis: LLM-powered custom API
+Deployment: Vercel / Render
+
+Project Structure
+postmate/
+│
+├── src/
+│   ├── components/     # Reusable components (FileUpload, ResultCard, etc.)
+│   ├── App.jsx         # Main app logic
+│   ├── App.css         # Styles (light/dark modes, responsiveness)
+│   └── ...
+│
+├── server/             # Backend (Express + analysis API)
+│   ├── server.js
+│   └── ...
+│
+├── public/             # Static assets
+├── README.md           # Documentation
+└── package.json
+
+Roadmap / Future Scope
+
+(a) Multi-language support
+
+(b) Advanced analytics dashboard (charts & graphs)
+
+(c) Enhanced OCR for better image text extraction
+
+(d) Post scheduling & social media integration
+
+(e) Export analysis as PDF/CSV
 
 ## API Endpoints
 - `POST /api/analyze` — Upload and analyze a file
