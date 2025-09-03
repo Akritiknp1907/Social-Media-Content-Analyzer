@@ -36,6 +36,7 @@ AI/Analysis: LLM-powered custom API
 Deployment: Vercel / Render
 
 Project Structure
+```
 postmate/
 │
 ├── src/
@@ -51,7 +52,7 @@ postmate/
 ├── public/             # Static assets
 ├── README.md           # Documentation
 └── package.json
-
+```
 Roadmap / Future Scope
 
 (a) Multi-language support
