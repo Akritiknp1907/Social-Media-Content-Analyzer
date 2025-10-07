@@ -8,7 +8,7 @@ Just upload a **PDF or Image (JPG/PNG)** — PostMate will extract the text, ana
 ## 📸 Demo Preview
 
 <p align="center">
-  <img src="./screenshot.png" alt="PostMate App Screenshot" width="800"/>
+  <img src="./Screenshot 2025-10-07 171909.png" alt="PostMate App Screenshot" width="800"/>
 </p>
 
 > 🖼️ *Above: PostMate’s clean dark UI with instant analysis preview.*
